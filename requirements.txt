@@ -3,7 +3,8 @@ Flask-SQLAlchemy==3.1.1
 Flask-JWT-Extended==4.6.0
 Flask-Cors==4.0.1
 Werkzeug==3.0.3
-scikit-learn==1.5.1
+scikit-learn
+gunicorn==22.0.0
 
 # Optional upgrades (uncomment when ready — see ml/text_match.py and ml/image_match.py):
 # sentence-transformers
