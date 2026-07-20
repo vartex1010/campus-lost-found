@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus Lost & Found</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #14213D;
+    --ink-deep: #0D1728;
+    --brass: #C9A227;
+    --brass-light: #E4C863;
+    --paper: #ECE6D6;
+    --paper-dim: #DCD4BE;
+    --paper-flat: #F5F1E6;
+    --stamp-red: #8B3A3A;
+    --stamp-green: #4C6B4F;
+    --text-dark: #201D18;
+    --text-mute: #6b6355;
+    --line: rgba(20,33,61,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    color:var(--text-dark);
+    min-height:100vh;
+  }
+
+  /* ============ SHARED ============ */
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-mark{
+    width:32px; height:32px; border:2px solid var(--brass); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:12px;
+    color:var(--brass-light); flex-shrink:0;
+  }
+  .brand-name{ font-family:'Zilla Slab', serif; font-weight:600; font-size:15.5px; color:var(--paper); }
+  .brand-name span{ color:var(--brass-light); }
+
+  /* ============ AUTH VIEW ============ */
+  #auth-view{
+    background:var(--ink-deep);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+
+  .desk{
+    width:100%;
+    max-width:960px;
+    min-height:600px;
+    background:var(--paper);
+    border-radius:6px;
+    display:grid;
+    grid-template-columns:1.05fr 1fr;
+    box-shadow:0 40px 80px -20px rgba(0,0,0,0.55);
+    position:relative;
+    overflow:hidden;
+  }
+
+  .board{
+    background:
+      radial-gradient(circle at 15% 20%, rgba(201,162,39,0.09), transparent 40%),
+      linear-gradient(160deg, var(--ink) 0%, var(--ink-deep) 100%);
+    color:var(--paper);
+    padding:52px 44px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    position:relative;
+  }
+  .board::after{
+    content:"";
+    position:absolute;
+    top:0; right:0; bottom:0;
+    width:2px;
+    background-image:linear-gradient(var(--ink-deep) 60%, transparent 0%);
+    background-size:2px 14px;
+    opacity:0.5;
+  }
+
+  .board-hero{ margin-top:40px; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--brass-light);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:16px; height:1px;
+    background:var(--brass-light);
+  }
+  .board-hero h1{
+    font-family:'Zilla Slab', serif;
+    font-weight:700;
+    font-size:38px;
+    line-height:1.15;
+    max-width:340px;
+    color:var(--paper);
+  }
+  .board-hero p{
+    margin-top:16px;
+    font-size:14.5px;
+    line-height:1.65;
+    color:rgba(236,230,214,0.65);
+    max-width:320px;
+  }
+
+  .ledger{
+    margin-top:36px;
+    border-top:1px solid rgba(236,230,214,0.15);
+    padding-top:18px;
+    display:flex;
+    gap:28px;
+  }
+  .ledger-item .num{
+    font-family:'JetBrains Mono', monospace;
+    font-size:20px;
+    font-weight:700;
+    color:var(--brass-light);
+  }
+  .ledger-item .lbl{
+    font-size:11.5px;
+    color:rgba(236,230,214,0.55);
+    margin-top:2px;
+  }
+
+  .pin{
+    position:absolute;
+    width:10px; height:10px;
+    border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, #e8503f, #a52f22);
+    box-shadow:0 2px 4px rgba(0,0,0,0.4);
+  }
+  .pin.p1{ top:36px; right:26px; }
+
+  .ticket{
+    padding:52px 48px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    position:relative;
+  }
+
+  .tabs{
+    position:relative;
+    display:flex;
+    background:var(--paper-dim);
+    border-radius:999px;
+    padding:4px;
+    margin-bottom:34px;
+    width:fit-content;
+    gap:2px;
+  }
+  .tab{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:700;
+    padding:9px 20px;
+    border-radius:999px;
+    border:none;
+    background:transparent;
+    color:var(--text-mute);
+    cursor:pointer;
+    transition:color 0.25s ease;
+    position:relative;
+    z-index:2;
+  }
+  .tab.active{ color:var(--paper); }
+  .tab-slider{
+    position:absolute;
+    top:4px; left:4px;
+    width:calc(50% - 4px);
+    height:calc(100% - 8px);
+    background:var(--ink);
+    border-radius:999px;
+    transition:transform 0.32s cubic-bezier(.65,0,.35,1);
+    z-index:1;
+  }
+  .tabs.register .tab-slider{ transform:translateX(100%); }
+
+  .ticket-id{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--text-mute);
+    letter-spacing:0.05em;
+    margin-bottom:6px;
+  }
+  .ticket h2{
+    font-family:'Zilla Slab', serif;
+    font-size:26px;
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .ticket .sub{
+    font-size:13.5px;
+    color:var(--text-mute);
+    margin-bottom:30px;
+  }
+
+  .field{ margin-bottom:18px; }
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    color:var(--ink);
+    margin-bottom:7px;
+  }
+  .field input{
+    width:100%;
+    padding:12px 14px;
+    border:1.5px solid var(--line);
+    border-radius:5px;
+    background:rgba(255,255,255,0.5);
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    color:var(--text-dark);
+    outline:none;
+    transition:border-color 0.2s ease, background 0.2s ease;
+  }
+  .field input:focus{
+    border-color:var(--ink);
+    background:#fff;
+  }
+  .field input:focus-visible{
+    outline:2px solid var(--brass);
+    outline-offset:1px;
+  }
+
+  .row-hint{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:12.5px;
+    margin:-6px 0 22px;
+  }
+  .row-hint a{ color:var(--ink); font-weight:600; text-decoration:none; }
+  .row-hint a:hover{ text-decoration:underline; }
+  .row-hint span{ color:var(--text-mute); }
+
+  .role-select{
+    display:flex;
+    gap:8px;
+    margin-bottom:22px;
+  }
+  .role-select label{
+    flex:1;
+    border:1.5px solid var(--line);
+    border-radius:5px;
+    padding:10px;
+    text-align:center;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--text-mute);
+    cursor:pointer;
+    transition:all 0.2s ease;
+  }
+  .role-select input{ display:none; }
+  .role-select input:checked + label{
+    border-color:var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+  }
+
+  .submit-stamp{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:5px;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:transform 0.15s ease, background 0.2s ease;
+    position:relative;
+  }
+  .submit-stamp:hover{ background:var(--ink-deep); }
+  .submit-stamp:active{ transform:scale(0.98); }
+
+  .divider{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:24px 0;
+    color:var(--text-mute);
+    font-size:11.5px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+  }
+  .divider::before, .divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  .perforation{
+    position:absolute;
+    top:0; bottom:0; left:0;
+    width:1px;
+    background-image:radial-gradient(circle, var(--ink-deep) 2px, transparent 2.5px);
+    background-size:14px 14px;
+    background-position:0 0;
+    opacity:0.18;
+  }
+
+  .form-panel{ display:none; }
+  .form-panel.active{ display:block; }
+
+  @media (max-width: 760px){
+    .desk{ grid-template-columns:1fr; }
+    .board{ display:none; }
+    .ticket{ padding:40px 26px; }
+  }
+
+  /* ============ DASHBOARD VIEW ============ */
+  #dashboard-view{
+    display:none;
+    background:var(--paper-flat);
+    min-height:100vh;
+  }
+  #dashboard-view.active{ display:flex; }
+
+  .sidebar{
+    width:240px;
+    flex-shrink:0;
+    background:linear-gradient(180deg, var(--ink) 0%, var(--ink-deep) 100%);
+    color:var(--paper);
+    padding:28px 20px;
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+  }
+  .sidebar .brand{ margin-bottom:40px; }
+
+  .nav-label{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.12em;
+    text-transform:uppercase; color:rgba(236,230,214,0.4); margin:18px 4px 10px;
+  }
+  .nav-item{
+    display:flex; align-items:center; gap:11px;
+    padding:10px 12px; border-radius:6px; margin-bottom:2px;
+    color:rgba(236,230,214,0.75); font-size:13.5px; font-weight:500;
+    text-decoration:none; cursor:pointer; transition:background 0.15s ease, color 0.15s ease;
+    border:none; background:none; width:100%; text-align:left; font-family:'Inter', sans-serif;
+  }
+  .nav-item svg{ width:16px; height:16px; flex-shrink:0; opacity:0.8; }
+  .nav-item:hover{ background:rgba(236,230,214,0.06); color:var(--paper); }
+  .nav-item.active{ background:rgba(201,162,39,0.14); color:var(--brass-light); }
+  .nav-item.active svg{ opacity:1; }
+
+  .sidebar-foot{
+    margin-top:auto; padding-top:20px; border-top:1px solid rgba(236,230,214,0.12);
+    display:flex; align-items:center; gap:10px;
+  }
+  .avatar{
+    width:34px; height:34px; border-radius:50%; background:var(--brass);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:12px; color:var(--ink-deep);
+    flex-shrink:0;
+  }
+  .sidebar-foot .who{ font-size:12.5px; font-weight:600; color:var(--paper); }
+  .sidebar-foot .role{ font-size:11px; color:rgba(236,230,214,0.5); }
+  .sidebar-foot .who, .sidebar-foot .role{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px; }
+
+  .main{ flex:1; padding:36px 44px; min-width:0; }
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:32px; gap:20px; flex-wrap:wrap;
+  }
+  .topbar h1{ font-family:'Zilla Slab', serif; font-size:26px; font-weight:600; }
+  .topbar .sub{ font-size:13px; color:var(--text-mute); margin-top:3px; }
+
+  .btn{
+    font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700;
+    letter-spacing:0.05em; text-transform:uppercase; padding:11px 18px; border-radius:5px;
+    border:none; cursor:pointer; transition:transform 0.15s ease, background 0.2s ease;
+    display:inline-flex; align-items:center; gap:8px; white-space:nowrap;
+  }
+  .btn:active{ transform:scale(0.97); }
+  .btn-primary{ background:var(--ink); color:var(--paper); }
+  .btn-primary:hover{ background:var(--ink-deep); }
+  .btn-ghost{ background:transparent; color:var(--ink); border:1.5px solid var(--line); }
+  .btn-ghost:hover{ border-color:var(--ink); }
+  .btn-row{ display:flex; gap:10px; }
+
+  .stats{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:32px;
+  }
+  .stat-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:8px;
+    padding:20px; position:relative; overflow:hidden;
+  }
+  .stat-card .tag{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--text-mute); margin-bottom:10px;
+  }
+  .stat-card .val{ font-family:'Zilla Slab', serif; font-size:30px; font-weight:700; color:var(--ink); }
+  .stat-card .delta{ font-size:12px; margin-top:6px; font-weight:600; }
+  .delta.up{ color:var(--stamp-green); }
+  .delta.down{ color:var(--stamp-red); }
+  .stat-card .corner{
+    position:absolute; top:14px; right:14px; width:26px; height:26px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; opacity:0.9;
+  }
+  .corner.gold{ background:rgba(201,162,39,0.16); }
+  .corner.green{ background:rgba(76,107,79,0.14); }
+  .corner.red{ background:rgba(139,58,58,0.12); }
+  .corner.navy{ background:rgba(20,33,61,0.1); }
+  .corner svg{ width:14px; height:14px; }
+
+  .grid{ display:grid; grid-template-columns:1.5fr 1fr; gap:20px; }
+
+  .panel{
+    background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:22px;
+  }
+  .panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .panel-head h2{ font-family:'Zilla Slab', serif; font-size:17px; font-weight:600; }
+  .panel-head a{ font-size:12px; font-weight:600; color:var(--ink); text-decoration:none; }
+  .panel-head a:hover{ text-decoration:underline; }
+
+  .item-row{
+    display:flex; align-items:center; gap:14px; padding:12px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .item-row:last-child{ border-bottom:none; }
+  .thumb{
+    width:44px; height:44px; border-radius:6px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:18px;
+  }
+  .thumb.lost{ background:rgba(139,58,58,0.1); }
+  .thumb.found{ background:rgba(76,107,79,0.12); }
+  .item-info{ flex:1; min-width:0; }
+  .item-info .name{ font-size:13.5px; font-weight:600; }
+  .item-info .meta{ font-size:11.5px; color:var(--text-mute); margin-top:2px; }
+  .pill{
+    font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
+    letter-spacing:0.04em; text-transform:uppercase; padding:4px 9px; border-radius:999px;
+    flex-shrink:0;
+  }
+  .pill.lost{ background:var(--stamp-red); color:var(--paper); }
+  .pill.found{ background:var(--stamp-green); color:var(--paper); }
+  .pill.matched{ background:var(--brass); color:var(--ink-deep); }
+
+  .match-card{
+    display:flex; gap:12px; align-items:center; padding:14px;
+    border:1px dashed var(--brass); border-radius:8px; background:rgba(201,162,39,0.06);
+    margin-bottom:12px;
+  }
+  .match-card:last-child{ margin-bottom:0; }
+  .match-score{
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:15px; color:var(--brass);
+    flex-shrink:0; text-align:center; min-width:44px;
+  }
+  .match-score .lbl{ font-size:9px; color:var(--text-mute); font-weight:500; letter-spacing:0.04em; }
+  .match-info .name{ font-size:13px; font-weight:600; }
+  .match-info .meta{ font-size:11px; color:var(--text-mute); margin-top:2px; }
+
+  .page{ display:none; }
+  .page.active{ display:block; }
+
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0 18px; }
+  .form-grid .field.full{ grid-column:1 / -1; }
+  .field textarea{
+    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:5px;
+    background:rgba(255,255,255,0.5); font-family:'Inter', sans-serif; font-size:14px;
+    color:var(--text-dark); outline:none; resize:vertical; min-height:90px;
+    transition:border-color 0.2s ease, background 0.2s ease;
+  }
+  .field textarea:focus{ border-color:var(--ink); background:#fff; }
+  .field select{
+    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:5px;
+    background:rgba(255,255,255,0.5); font-family:'Inter', sans-serif; font-size:14px;
+    color:var(--text-dark); outline:none; cursor:pointer;
+  }
+
+  .search-bar{ display:flex; gap:10px; margin-bottom:24px; }
+  .search-bar input{
+    flex:1; padding:13px 16px; border:1.5px solid var(--line); border-radius:6px;
+    background:var(--paper); font-family:'Inter', sans-serif; font-size:14px; outline:none;
+  }
+  .search-bar input:focus{ border-color:var(--ink); }
+  .filter-row{ display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+  .chip{
+    font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700; letter-spacing:0.04em;
+    text-transform:uppercase; padding:7px 14px; border-radius:999px; border:1.5px solid var(--line);
+    background:var(--paper); color:var(--text-mute); cursor:pointer; transition:all 0.15s ease;
+  }
+  .chip.active{ background:var(--ink); border-color:var(--ink); color:var(--paper); }
+
+  .match-actions{ display:flex; gap:6px; margin-left:auto; flex-shrink:0; }
+  .match-actions button{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700; letter-spacing:0.03em;
+    text-transform:uppercase; padding:7px 11px; border-radius:5px; border:none; cursor:pointer;
+  }
+  .match-actions .accept{ background:var(--stamp-green); color:#fff; }
+  .match-actions .reject{ background:transparent; color:var(--text-mute); border:1.5px solid var(--line); }
+  .match-card{ align-items:center; }
+
+  .upload-box{
+    border:1.5px dashed var(--line); border-radius:8px; padding:22px;
+    display:flex; align-items:center; gap:16px; cursor:pointer;
+    background:rgba(255,255,255,0.35); transition:border-color 0.2s ease, background 0.2s ease;
+  }
+  .upload-box:hover, .upload-box.dragover{ border-color:var(--ink); background:rgba(255,255,255,0.6); }
+  .upload-box input[type="file"]{ display:none; }
+  .upload-icon{
+    width:44px; height:44px; border-radius:8px; flex-shrink:0;
+    background:rgba(20,33,61,0.06); display:flex; align-items:center; justify-content:center;
+  }
+  .upload-icon svg{ width:20px; height:20px; stroke:var(--ink); }
+  .upload-text{ font-size:13px; color:var(--text-mute); }
+  .upload-text strong{ color:var(--ink); font-weight:600; }
+  .upload-hint{ font-size:11.5px; color:var(--text-mute); margin-top:2px; }
+
+  .upload-previews{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .upload-thumb{
+    position:relative; width:74px; height:74px; border-radius:7px; overflow:hidden;
+    border:1px solid var(--line); flex-shrink:0;
+  }
+  .upload-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .upload-thumb .remove{
+    position:absolute; top:3px; right:3px; width:18px; height:18px; border-radius:50%;
+    background:rgba(13,23,40,0.75); color:#fff; border:none; font-size:12px; line-height:1;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+
+  @media (max-width: 980px){
+    .stats{ grid-template-columns:repeat(2, 1fr); }
+    .grid{ grid-template-columns:1fr; }
+    .form-grid{ grid-template-columns:1fr; }
+  }
+  @media (max-width: 760px){
+    #dashboard-view.active{ flex-direction:column; }
+    .sidebar{ width:100%; min-height:auto; flex-direction:row; align-items:center; padding:16px 20px; }
+    .sidebar-foot, .nav-label{ display:none; }
+    .nav{ display:flex; gap:4px; overflow-x:auto; }
+    .main{ padding:24px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .tab-slider, .submit-stamp, .btn{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH VIEW ============ -->
+<div id="auth-view">
+  <div class="desk">
+
+    <div class="board">
+      <div>
+        <div class="brand">
+          <div class="brand-mark">L&F</div>
+          <div class="brand-name">Campus <span>Lost&Found</span></div>
+        </div>
+
+        <div class="board-hero">
+          <div class="eyebrow">Claim Desk</div>
+          <h1>Every lost item leaves a trail. We help you follow it back.</h1>
+          <p>Report what you've lost, log what you've found, and let AI matching connect the two — image and description, cross-checked automatically.</p>
+        </div>
+      </div>
+
+      <div class="ledger">
+        <div class="ledger-item">
+          <div class="num">2,140+</div>
+          <div class="lbl">items logged</div>
+        </div>
+        <div class="ledger-item">
+          <div class="num">1,860+</div>
+          <div class="lbl">reunited with owners</div>
+        </div>
+        <div class="ledger-item">
+          <div class="num">24×7</div>
+          <div class="lbl">desk open</div>
+        </div>
+      </div>
+
+      <div class="pin p1"></div>
+    </div>
+
+    <div class="ticket">
+      <div class="perforation"></div>
+
+      <div class="tabs" id="tabs">
+        <div class="tab-slider"></div>
+        <button class="tab active" data-tab="login" type="button">Login</button>
+        <button class="tab" data-tab="register" type="button">Register</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="form-panel active" id="panel-login">
+        <div class="ticket-id">TICKET NO. LF-00417</div>
+        <h2>Welcome back</h2>
+        <p class="sub">Sign in to track your reports and check AI match results.</p>
+
+        <form id="login-form">
+          <div class="field">
+            <label for="login-email">Campus email</label>
+            <input type="email" id="login-email" placeholder="you@college.edu" value="abc@gmail.com" required>
+          </div>
+          <div class="field">
+            <label for="login-pass">Password</label>
+            <input type="password" id="login-pass" placeholder="••••••••" value="123" required>
+          </div>
+          <div class="row-hint">
+            <span><input type="checkbox" id="remember" style="margin-right:6px;">Keep me signed in</span>
+            <a href="#">Forgot password?</a>
+          </div>
+          <button class="submit-stamp" type="submit">Sign In →</button>
+        </form>
+
+        <div class="divider">or</div>
+        <p style="text-align:center; font-size:13px; color:var(--text-mute);">
+          New here? <a href="#" onclick="switchTab('register'); return false;" style="color:var(--ink); font-weight:600;">Create an account</a>
+        </p>
+      </div>
+
+      <!-- REGISTER -->
+      <div class="form-panel" id="panel-register">
+        <div class="ticket-id">NEW ENTRY — LF-00418</div>
+        <h2>Create your account</h2>
+        <p class="sub">Register with your campus email to start reporting items.</p>
+
+        <form id="register-form">
+          <div class="field">
+            <label for="reg-name">Full name</label>
+            <input type="text" id="reg-name" placeholder="As per college ID" required>
+          </div>
+          <div class="field">
+            <label for="reg-email">Campus email</label>
+            <input type="email" id="reg-email" placeholder="you@college.edu" required>
+          </div>
+          <div class="field">
+            <label for="reg-pass">Password</label>
+            <input type="password" id="reg-pass" placeholder="At least 8 characters" required>
+          </div>
+
+          <div class="role-select">
+            <input type="radio" name="role" id="role-student" value="student" checked>
+            <label for="role-student">Student</label>
+            <input type="radio" name="role" id="role-staff" value="staff">
+            <label for="role-staff">Staff</label>
+            <input type="radio" name="role" id="role-admin" value="admin">
+            <label for="role-admin">Admin</label>
+          </div>
+
+          <button class="submit-stamp" type="submit">Create Account →</button>
+        </form>
+
+        <div class="divider">or</div>
+        <p style="text-align:center; font-size:13px; color:var(--text-mute);">
+          Already registered? <a href="#" onclick="switchTab('login'); return false;" style="color:var(--ink); font-weight:600;">Sign in</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD VIEW ============ -->
+<div id="dashboard-view">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">L&F</div>
+      <div class="brand-name">Campus <span>Lost&Found</span></div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-label">Desk</div>
+      <a class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" data-page="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        Search Items
+      </a>
+      <div class="nav-label">Report</div>
+      <a class="nav-item" data-page="report-lost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v6M9 12h6"/><circle cx="12" cy="12" r="9"/></svg>
+        Report Lost Item
+      </a>
+      <a class="nav-item" data-page="report-found">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+        Report Found Item
+      </a>
+      <div class="nav-label">Insights</div>
+      <a class="nav-item" data-page="ai-matches">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 21 12 17l-5.5 4L8 13.5 3 9l6.5-.5z"/></svg>
+        AI Match Results
+      </a>
+      <a class="nav-item" data-page="my-reports">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5a2 2 0 012-2h8.5L20 7.5V19a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M14 3v5h5"/></svg>
+        My Reports
+      </a>
+      <div class="nav-label">Account</div>
+      <button class="nav-item" id="logout-btn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        Log Out
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="avatar" id="avatar-initials">TV</div>
+      <div>
+        <div class="who" id="user-name">Tushar V.</div>
+        <div class="role" id="user-role">Student</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="page-title">Desk Overview</h1>
+        <div class="sub" id="page-sub">Wednesday, 8 July 2026 — here's what's moving on campus today.</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="switchPage('report-found')">Report Found →</button>
+        <button class="btn btn-primary" onclick="switchPage('report-lost')">+ Report Lost Item</button>
+      </div>
+    </div>
+
+    <div class="page active" id="page-dashboard">
+    <div class="stats">
+      <div class="stat-card">
+        <div class="corner red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--stamp-red)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+        </div>
+        <div class="tag">Lost Items</div>
+        <div class="val">128</div>
+        <div class="delta up">▲ 12 this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="corner green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--stamp-green)" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <div class="tag">Found Items</div>
+        <div class="val">94</div>
+        <div class="delta up">▲ 8 this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="corner gold">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--brass)" stroke-width="2"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 21 12 17l-5.5 4L8 13.5 3 9l6.5-.5z"/></svg>
+        </div>
+        <div class="tag">AI Matches Pending</div>
+        <div class="val">17</div>
+        <div class="delta down">▼ needs review</div>
+      </div>
+      <div class="stat-card">
+        <div class="corner navy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M12 8v8M8 12h8"/><circle cx="12" cy="12" r="9"/></svg>
+        </div>
+        <div class="tag">Items Reunited</div>
+        <div class="val">61</div>
+        <div class="delta up">▲ 47.6% resolution rate</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Recent Activity</h2>
+          <a href="#">View all →</a>
+        </div>
+
+        <div class="item-row">
+          <div class="thumb lost">🎒</div>
+          <div class="item-info">
+            <div class="name">Black Backpack — near Library Block C</div>
+            <div class="meta">Reported by Aisha K. · 2 hours ago</div>
+          </div>
+          <span class="pill lost">Lost</span>
+        </div>
+        <div class="item-row">
+          <div class="thumb found">🔑</div>
+          <div class="item-info">
+            <div class="name">Bunch of keys with red keychain</div>
+            <div class="meta">Reported by Rohit S. · 5 hours ago</div>
+          </div>
+          <span class="pill found">Found</span>
+        </div>
+        <div class="item-row">
+          <div class="thumb lost">🪪</div>
+          <div class="item-info">
+            <div class="name">College ID Card — Akhilesh S.K.</div>
+            <div class="meta">Reported by Akhilesh S.K. · Yesterday</div>
+          </div>
+          <span class="pill matched">Matched</span>
+        </div>
+        <div class="item-row">
+          <div class="thumb found">🧥</div>
+          <div class="item-info">
+            <div class="name">Navy blue hoodie, size M</div>
+            <div class="meta">Reported by Gaurav D.P. · Yesterday</div>
+          </div>
+          <span class="pill found">Found</span>
+        </div>
+        <div class="item-row">
+          <div class="thumb lost">📱</div>
+          <div class="item-info">
+            <div class="name">Phone — cracked screen, blue case</div>
+            <div class="meta">Reported by Priya M. · 2 days ago</div>
+          </div>
+          <span class="pill lost">Lost</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Top AI Matches</h2>
+          <a href="#">Review all →</a>
+        </div>
+
+        <div class="match-card">
+          <div class="match-score">92%<div class="lbl">MATCH</div></div>
+          <div class="match-info">
+            <div class="name">Black Backpack ↔ Bag found, Canteen</div>
+            <div class="meta">Image + description match</div>
+          </div>
+        </div>
+        <div class="match-card">
+          <div class="match-score">87%<div class="lbl">MATCH</div></div>
+          <div class="match-info">
+            <div class="name">College ID ↔ ID card, Block C</div>
+            <div class="meta">Description match</div>
+          </div>
+        </div>
+        <div class="match-card">
+          <div class="match-score">74%<div class="lbl">MATCH</div></div>
+          <div class="match-info">
+            <div class="name">Red water bottle ↔ Bottle, Gym</div>
+            <div class="meta">Image match</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <!-- /page-dashboard -->
+
+    <!-- ============ SEARCH ITEMS ============ -->
+    <div class="page" id="page-search">
+      <div class="panel">
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="Search by item, location, or reporter…">
+          <button class="btn btn-primary" type="button">Search</button>
+        </div>
+        <div class="filter-row">
+          <div class="chip active" data-filter="all">All</div>
+          <div class="chip" data-filter="lost">Lost</div>
+          <div class="chip" data-filter="found">Found</div>
+          <div class="chip" data-filter="matched">Matched</div>
+        </div>
+
+        <div id="search-results">
+          <p style="color:var(--text-mute); font-size:13.5px; padding:20px 4px;">Loading items…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ REPORT LOST ITEM ============ -->
+    <div class="page" id="page-report-lost">
+      <div class="panel">
+        <form id="report-lost-form">
+          <div class="form-grid">
+            <div class="field">
+              <label for="lost-item-name">Item name</label>
+              <input type="text" id="lost-item-name" placeholder="e.g. Black backpack" required>
+            </div>
+            <div class="field">
+              <label for="lost-category">Category</label>
+              <select id="lost-category">
+                <option>Bag / Backpack</option>
+                <option>Electronics</option>
+                <option>ID / Documents</option>
+                <option>Keys</option>
+                <option>Clothing</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="lost-location">Last seen location</label>
+              <input type="text" id="lost-location" placeholder="e.g. Library Block C" required>
+            </div>
+            <div class="field">
+              <label for="lost-date">Date lost</label>
+              <input type="date" id="lost-date" required>
+            </div>
+            <div class="field full">
+              <label for="lost-desc">Description</label>
+              <textarea id="lost-desc" placeholder="Color, brand, distinguishing marks…"></textarea>
+            </div>
+            <div class="field full">
+              <label>Photo (optional)</label>
+              <label class="upload-box" id="lost-upload-box" for="lost-image">
+                <div class="upload-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                </div>
+                <div>
+                  <div class="upload-text"><strong>Click to upload</strong> or drag an image here</div>
+                  <div class="upload-hint">Helps AI matching find it faster · PNG or JPG</div>
+                </div>
+                <input type="file" id="lost-image" accept="image/*" multiple>
+              </label>
+              <div class="upload-previews" id="lost-previews"></div>
+            </div>
+          </div>
+          <button class="submit-stamp" type="submit" style="width:auto; padding:14px 28px;">Submit Report →</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ REPORT FOUND ITEM ============ -->
+    <div class="page" id="page-report-found">
+      <div class="panel">
+        <form id="report-found-form">
+          <div class="form-grid">
+            <div class="field">
+              <label for="found-item-name">Item name</label>
+              <input type="text" id="found-item-name" placeholder="e.g. Bunch of keys" required>
+            </div>
+            <div class="field">
+              <label for="found-category">Category</label>
+              <select id="found-category">
+                <option>Bag / Backpack</option>
+                <option>Electronics</option>
+                <option>ID / Documents</option>
+                <option>Keys</option>
+                <option>Clothing</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="found-location">Found location</label>
+              <input type="text" id="found-location" placeholder="e.g. Canteen" required>
+            </div>
+            <div class="field">
+              <label for="found-date">Date found</label>
+              <input type="date" id="found-date" required>
+            </div>
+            <div class="field full">
+              <label for="found-desc">Description</label>
+              <textarea id="found-desc" placeholder="Color, brand, distinguishing marks…"></textarea>
+            </div>
+            <div class="field full">
+              <label>Photo (optional)</label>
+              <label class="upload-box" id="found-upload-box" for="found-image">
+                <div class="upload-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                </div>
+                <div>
+                  <div class="upload-text"><strong>Click to upload</strong> or drag an image here</div>
+                  <div class="upload-hint">Helps AI matching find it faster · PNG or JPG</div>
+                </div>
+                <input type="file" id="found-image" accept="image/*" multiple>
+              </label>
+              <div class="upload-previews" id="found-previews"></div>
+            </div>
+          </div>
+          <button class="submit-stamp" type="submit" style="width:auto; padding:14px 28px;">Submit Report →</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ AI MATCH RESULTS ============ -->
+    <div class="page" id="page-ai-matches">
+      <div class="panel">
+        <div style="margin-bottom:16px;">
+          <button class="btn btn-primary" type="button" id="run-matching-btn">Run AI Matching →</button>
+        </div>
+        <div id="ai-matches-list">
+          <p style="color:var(--text-mute); font-size:13.5px; padding:20px 4px;">Loading matches…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ MY REPORTS ============ -->
+    <div class="page" id="page-my-reports">
+      <div class="panel">
+        <div id="my-reports-list">
+          <p style="color:var(--text-mute); font-size:13.5px; padding:20px 4px;">Loading your reports…</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+  // ---- API config ----
+  const API_BASE = 'http://127.0.0.1:5000';
+
+  function getToken(){ return localStorage.getItem('token'); }
+  function setToken(t){ localStorage.setItem('token', t); }
+  function clearToken(){ localStorage.removeItem('token'); }
+
+  async function apiFetch(path, options = {}){
+    const headers = options.headers || {};
+    const token = getToken();
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch(API_BASE + path, { ...options, headers });
+    let data = null;
+    try { data = await res.json(); } catch (_) { /* no body */ }
+    if (!res.ok) throw new Error((data && data.error) || 'Request failed');
+    return data;
+  }
+
+  // ---- Auth tab switching ----
+  const tabsEl = document.getElementById('tabs');
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.form-panel');
+
+  function switchTab(name){
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+    tabsEl.classList.toggle('register', name === 'register');
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
+
+  // ---- Sidebar page switching ----
+  const navItems = document.querySelectorAll('.nav-item[data-page]');
+  const pages = document.querySelectorAll('.page');
+  const pageMeta = {
+    'dashboard':    { title: 'Desk Overview',        sub: "Wednesday, 8 July 2026 — here's what's moving on campus today." },
+    'search':       { title: 'Search Items',         sub: 'Find lost or found items reported across campus.' },
+    'report-lost':  { title: 'Report Lost Item',     sub: "Tell us what you lost — we'll notify you the moment there's a match." },
+    'report-found': { title: 'Report Found Item',    sub: 'Help reunite someone with their belongings.' },
+    'ai-matches':   { title: 'AI Match Results',     sub: 'Review and confirm matches suggested by the AI.' },
+    'my-reports':   { title: 'My Reports',           sub: "Track the status of everything you've reported." },
+  };
+
+  function switchPage(page){
+    navItems.forEach(n => n.classList.toggle('active', n.dataset.page === page));
+    pages.forEach(p => p.classList.toggle('active', p.id === 'page-' + page));
+    const meta = pageMeta[page];
+    if (meta) {
+      document.getElementById('page-title').textContent = meta.title;
+      document.getElementById('page-sub').textContent = meta.sub;
+    }
+  }
+
+  navItems.forEach(item => {
+    item.addEventListener('click', () => switchPage(item.dataset.page));
+  });
+
+  const reportFieldMap = {
+    lost:  { name: 'lost-item-name', location: 'lost-location', desc: 'lost-desc', endpoint: '/api/report-lost' },
+    found: { name: 'found-item-name', location: 'found-location', desc: 'found-desc', endpoint: '/api/report-found' },
+  };
+
+  ['report-lost-form', 'report-found-form'].forEach(id => {
+    const form = document.getElementById(id);
+    if (!form) return;
+    const prefix = id === 'report-lost-form' ? 'lost' : 'found';
+
+    form.addEventListener('submit', async function(e){
+      e.preventDefault();
+      if (!getToken()) {
+        alert('Please log in first.');
+        showAuth();
+        return;
+      }
+
+      const map = reportFieldMap[prefix];
+      const formData = new FormData();
+      formData.append('title', document.getElementById(map.name).value);
+      formData.append('location', document.getElementById(map.location).value);
+      formData.append('description', document.getElementById(map.desc).value);
+      if (uploadState[prefix][0]) formData.append('image', uploadState[prefix][0].file);
+
+      const submitBtn = form.querySelector('.submit-stamp');
+      submitBtn.disabled = true;
+
+      try {
+        await apiFetch(map.endpoint, { method: 'POST', body: formData });
+        alert('Report submitted!');
+        form.reset();
+        clearPreviews(prefix);
+        switchPage('dashboard');
+        // fire-and-forget: refresh the AI match pool with this new report
+        apiFetch('/api/run-matching', { method: 'POST' }).catch(() => {});
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  });
+
+  // ---- Image upload previews ----
+  const uploadState = { lost: [], found: [] };
+
+  function renderPreviews(prefix){
+    const container = document.getElementById(prefix + '-previews');
+    container.innerHTML = '';
+    uploadState[prefix].forEach((fileData, idx) => {
+      const thumb = document.createElement('div');
+      thumb.className = 'upload-thumb';
+      thumb.innerHTML = '<img src="' + fileData.url + '" alt="Upload preview">' +
+        '<button type="button" class="remove" aria-label="Remove image">×</button>';
+      thumb.querySelector('.remove').addEventListener('click', () => {
+        URL.revokeObjectURL(fileData.url);
+        uploadState[prefix].splice(idx, 1);
+        renderPreviews(prefix);
+      });
+      container.appendChild(thumb);
+    });
+  }
+
+  function addFiles(prefix, fileList){
+    Array.from(fileList).forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      uploadState[prefix].push({ file, url: URL.createObjectURL(file) });
+    });
+    renderPreviews(prefix);
+  }
+
+  function clearPreviews(prefix){
+    uploadState[prefix].forEach(fileData => URL.revokeObjectURL(fileData.url));
+    uploadState[prefix] = [];
+    renderPreviews(prefix);
+  }
+
+  ['lost', 'found'].forEach(prefix => {
+    const input = document.getElementById(prefix + '-image');
+    const box = document.getElementById(prefix + '-upload-box');
+    if (!input || !box) return;
+
+    input.addEventListener('change', () => {
+      addFiles(prefix, input.files);
+      input.value = '';
+    });
+
+    ['dragenter', 'dragover'].forEach(evt => {
+      box.addEventListener(evt, e => {
+        e.preventDefault();
+        box.classList.add('dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+      box.addEventListener(evt, e => {
+        e.preventDefault();
+        box.classList.remove('dragover');
+      });
+    });
+    box.addEventListener('drop', e => {
+      if (e.dataTransfer && e.dataTransfer.files) addFiles(prefix, e.dataTransfer.files);
+    });
+  });
+
+  // ---- Search Items page ----
+  const ICONS = { 'bag':'🎒','backpack':'🎒','key':'🔑','id':'🪪','card':'🪪','phone':'📱','bottle':'💧','hoodie':'🧥','jacket':'🧥' };
+  function iconFor(title){
+    const t = (title || '').toLowerCase();
+    for (const key in ICONS) if (t.includes(key)) return ICONS[key];
+    return '📦';
+  }
+  function timeAgo(iso){
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 60) return mins + ' min ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + ' hour' + (hrs === 1 ? '' : 's') + ' ago';
+    const days = Math.floor(hrs / 24);
+    return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+  }
+
+  function renderSearchResults(items){
+    const container = document.getElementById('search-results');
+    if (!items.length) {
+      container.innerHTML = '<p style="color:var(--text-mute); font-size:13.5px; padding:20px 4px;">No items found.</p>';
+      return;
+    }
+    container.innerHTML = items.map(item => {
+      const pillClass = item.status === 'matched' ? 'matched' : item.type;
+      const pillLabel = item.status === 'matched' ? 'Matched' : (item.type === 'lost' ? 'Lost' : 'Found');
+      return `<div class="item-row">
+        <div class="thumb ${item.type}">${iconFor(item.title)}</div>
+        <div class="item-info">
+          <div class="name">${item.title}${item.location ? ' — ' + item.location : ''}</div>
+          <div class="meta">${timeAgo(item.created_at)}</div>
+        </div>
+        <span class="pill ${pillClass}">${pillLabel}</span>
+      </div>`;
+    }).join('');
+  }
+
+  let currentFilter = 'all';
+  async function loadSearchResults(){
+    const q = document.getElementById('search-input').value.trim();
+    const type = currentFilter === 'matched' ? 'all' : currentFilter;
+    try {
+      let items = await apiFetch(`/api/items?type=${type}&q=${encodeURIComponent(q)}`);
+      if (currentFilter === 'matched') items = items.filter(i => i.status === 'matched');
+      renderSearchResults(items);
+    } catch (err) {
+      document.getElementById('search-results').innerHTML =
+        '<p style="color:var(--stamp-red); font-size:13.5px; padding:20px 4px;">Could not load items: ' + err.message + '</p>';
+    }
+  }
+
+  document.querySelectorAll('#page-search .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#page-search .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentFilter = chip.dataset.filter;
+      loadSearchResults();
+    });
+  });
+
+  document.getElementById('search-input').addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') loadSearchResults();
+  });
+  document.querySelector('#page-search .search-bar .btn-primary').addEventListener('click', loadSearchResults);
+
+  // ---- AI Match Results page ----
+  function renderMatches(matches){
+    const container = document.getElementById('ai-matches-list');
+    if (!matches.length) {
+      container.innerHTML = '<p style="color:var(--text-mute); font-size:13.5px; padding:20px 4px;">No pending matches. Try "Run AI Matching".</p>';
+      return;
+    }
+    container.innerHTML = matches.map(m => {
+      const pct = Math.round(m.combined_score * 100);
+      const basis = m.image_score > 0 ? 'Image + description match' : 'Description match';
+      return `<div class="match-card" data-id="${m.id}">
+        <div class="match-score">${pct}%<div class="lbl">MATCH</div></div>
+        <div class="match-info">
+          <div class="name">${m.lost_item.title} ↔ ${m.found_item.title}${m.found_item.location ? ', ' + m.found_item.location : ''}</div>
+          <div class="meta">${basis}</div>
+        </div>
+        <div class="match-actions">
+          <button class="accept" type="button" data-action="confirm" data-id="${m.id}">Confirm</button>
+          <button class="reject" type="button" data-action="reject" data-id="${m.id}">Dismiss</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function loadMatches(){
+    try {
+      const matches = await apiFetch('/api/matches');
+      renderMatches(matches);
+    } catch (err) {
+      document.getElementById('ai-matches-list').innerHTML =
+        '<p style="color:var(--stamp-red); font-size:13.5px; padding:20px 4px;">Could not load matches: ' + err.message + '</p>';
+    }
+  }
+
+  document.getElementById('ai-matches-list').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    if (!getToken()) { alert('Please log in first.'); showAuth(); return; }
+    const { action, id } = btn.dataset;
+    try {
+      await apiFetch(`/api/matches/${id}/${action}`, { method: 'POST' });
+      btn.closest('.match-card').style.opacity = '0.4';
+      btn.closest('.match-card').style.pointerEvents = 'none';
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  document.getElementById('run-matching-btn').addEventListener('click', async () => {
+    if (!getToken()) { alert('Please log in first.'); showAuth(); return; }
+    const btn = document.getElementById('run-matching-btn');
+    btn.disabled = true;
+    btn.textContent = 'Running…';
+    try {
+      const result = await apiFetch('/api/run-matching', { method: 'POST' });
+      await loadMatches();
+      alert(`Done — ${result.new_matches} new match(es) found.`);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Run AI Matching →';
+    }
+  });
+
+  // ---- My Reports page ----
+  function renderMyReports(items){
+    const container = document.getElementById('my-reports-list');
+    if (!items.length) {
+      container.innerHTML = '<p style="color:var(--text-mute); font-size:13.5px; padding:20px 4px;">You haven\'t reported anything yet.</p>';
+      return;
+    }
+    container.innerHTML = items.map(item => {
+      const pillClass = item.status === 'matched' ? 'matched' : item.type;
+      const pillLabel = item.status === 'matched' ? 'Matched' : (item.type === 'lost' ? 'Lost' : 'Found');
+      const statusText = item.status === 'matched' ? 'Reunited with owner' : (item.type === 'lost' ? 'Awaiting match' : 'Awaiting claim');
+      return `<div class="item-row">
+        <div class="thumb ${item.type}">${iconFor(item.title)}</div>
+        <div class="item-info">
+          <div class="name">${item.title}</div>
+          <div class="meta">Filed ${timeAgo(item.created_at)} · ${statusText}</div>
+        </div>
+        <span class="pill ${pillClass}">${pillLabel}</span>
+      </div>`;
+    }).join('');
+  }
+
+  async function loadMyReports(){
+    if (!getToken()) {
+      document.getElementById('my-reports-list').innerHTML =
+        '<p style="color:var(--text-mute); font-size:13.5px; padding:20px 4px;">Log in to see your reports.</p>';
+      return;
+    }
+    try {
+      const items = await apiFetch('/api/my-reports');
+      renderMyReports(items);
+    } catch (err) {
+      document.getElementById('my-reports-list').innerHTML =
+        '<p style="color:var(--stamp-red); font-size:13.5px; padding:20px 4px;">Could not load reports: ' + err.message + '</p>';
+    }
+  }
+
+  // Load data lazily whenever a page is opened
+  const originalSwitchPage = switchPage;
+  switchPage = function(page){
+    originalSwitchPage(page);
+    if (page === 'search') loadSearchResults();
+    if (page === 'ai-matches') loadMatches();
+    if (page === 'my-reports') loadMyReports();
+  };
+
+  // ---- View switching (auth <-> dashboard) ----
+  const authView = document.getElementById('auth-view');
+  const dashboardView = document.getElementById('dashboard-view');
+
+  function getInitials(name){
+    return name.trim().split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase() || '??';
+  }
+
+  function showDashboard(name, role){
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('user-role').textContent = role;
+    document.getElementById('avatar-initials').textContent = getInitials(name);
+    authView.style.display = 'none';
+    dashboardView.classList.add('active');
+  }
+
+  function showAuth(){
+    dashboardView.classList.remove('active');
+    authView.style.display = 'flex';
+    switchTab('login');
+    switchPage('dashboard');
+  }
+
+  document.getElementById('login-form').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const pass = document.getElementById('login-pass').value;
+    const submitBtn = e.target.querySelector('.submit-stamp');
+    submitBtn.disabled = true;
+
+    try {
+      const data = await apiFetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass }),
+      });
+      setToken(data.token);
+      showDashboard(data.user.name, data.user.role);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('register-form').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const name = document.getElementById('reg-name').value;
+    const email = document.getElementById('reg-email').value;
+    const pass = document.getElementById('reg-pass').value;
+    const role = document.querySelector('input[name="role"]:checked').value;
+    const submitBtn = e.target.querySelector('.submit-stamp');
+    submitBtn.disabled = true;
+
+    try {
+      const data = await apiFetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password: pass, role }),
+      });
+      setToken(data.token);
+      showDashboard(data.user.name, data.user.role);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    clearToken();
+    showAuth();
+  });
+
+  // ---- Restore session on page refresh, if a token is already saved ----
+  (async function restoreSession(){
+    if (!getToken()) return;
+    try {
+      const data = await apiFetch('/api/me');
+      showDashboard(data.user.name, data.user.role);
+      switchPage('dashboard');
+    } catch (_) {
+      clearToken(); // token expired/invalid — back to login
+    }
+  })();
+</script>
+
+</body>
+</html>
